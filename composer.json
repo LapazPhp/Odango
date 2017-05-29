@@ -1,0 +1,29 @@
+{
+    "name": "lapaz/aura-di-ext",
+    "description": "AOP inspired advice/function compositor",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Hisateru Tanaka",
+            "email": "tanakahisateru@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^5.6||^7.0",
+        "ray/aop": "^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7.20||^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lapaz\\Odango\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lapaz\\Odango\\": "tests/"
+        }
+    }
+}
