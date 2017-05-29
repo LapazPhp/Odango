@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/LapazPhp/Odango.svg?branch=master)](https://travis-ci.org/LapazPhp/Odango)
 
-Odango is function compositor inspired by Aspect Oriented Programming (AOP).
+Odango is a function compositor inspired by Aspect Oriented Programming (AOP).
 
 To separate concerns is better practice even if you don't know AOP, for example
 caching, logging, transaction, security filter, event dispatching or such as.
@@ -14,7 +14,12 @@ full featured AOP like a Google Guice or such as.
 ## Example
 
 ```php
-$withLoggedTransaction = AdviceComposite::of(function ($invocation) use ($db) {
+$withLoggedTransaction = AdviceComposite::of(function ($invocation) use ($logger) {
+    $logger->info('Starting transaction.');
+    $result = $invocation->proceed();
+    $logger->info('Transaction comitted.');
+    return $result;
+})->with(function ($invocation) use ($db) {
     $db->beginTransaction();
     try {
         $result = $invocation->proceed();
@@ -24,11 +29,6 @@ $withLoggedTransaction = AdviceComposite::of(function ($invocation) use ($db) {
         $dbh->rollBack();
         throw $ex;
     }
-})->with(function ($invocation) use ($logger) {
-    $logger->info('Starting transaction.');
-    $result = $invocation->proceed();
-    $logger->info('Transaction comitted.');
-    return $result;
 });
 
 $storeDataInvocation = [$this, 'storeData']; // Some callable
@@ -39,6 +39,9 @@ $storeDataInvocation($data);
 
 Odango supports Ray.Aop's MethodInterceptor as composition target.
 So, existing AOP assets may be reusable.
+
+Remark that AdviceComposite instance is immutable because generated function
+references the creation context. Modification breaks it.
 
 ## Known issue
 
