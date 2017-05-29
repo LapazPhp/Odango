@@ -1,5 +1,7 @@
 # Odango
 
+[![Build Status](https://travis-ci.org/LapazPhp/Odango.svg?branch=master)](https://travis-ci.org/LapazPhp/Odango)
+
 Odango is function compositor inspired by Aspect Oriented Programming (AOP).
 
 To separate concerns is better practice even if you don't know AOP, for example
