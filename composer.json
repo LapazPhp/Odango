@@ -1,5 +1,5 @@
 {
-    "name": "lapaz/aura-di-ext",
+    "name": "lapaz/odango",
     "description": "AOP inspired advice/function compositor",
     "type": "library",
     "license": "MIT",
