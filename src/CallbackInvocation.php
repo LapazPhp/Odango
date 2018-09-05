@@ -1,30 +1,30 @@
 <?php
 namespace Lapaz\Odango;
 
-use Ray\Aop\Arguments;
 use Ray\Aop\MethodInvocation;
+use Ray\Aop\ReflectionMethod;
 
 class CallbackInvocation implements MethodInvocation
 {
     /**
-     * @var callable
+     * @var object|array|string
      */
     protected $callback;
 
     /**
-     * @var Arguments
+     * @var \ArrayObject
      */
     protected $arguments;
 
     /**
      * Invocation constructor.
      * @param callable $callback
-     * @param Arguments $arguments
+     * @param array $arguments
      */
-    public function __construct(callable $callback, Arguments $arguments)
+    public function __construct(callable $callback, array $arguments)
     {
         $this->callback = $callback;
-        $this->arguments = $arguments;
+        $this->arguments = new \ArrayObject($arguments);
     }
 
     /**
@@ -32,23 +32,57 @@ class CallbackInvocation implements MethodInvocation
      */
     public function getThis()
     {
-        return null;
+        throw new \BadMethodCallException();
     }
 
     /**
      * @inheritDoc
      */
-    public function getMethod()
+    public function getMethod() : ReflectionMethod
     {
-        return null;
+        throw new \BadMethodCallException();
     }
 
     /**
      * @inheritDoc
      */
-    public function getArguments()
+    public function getArguments() : \ArrayObject
     {
         return $this->arguments;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getNamedArguments(): \ArrayObject
+    {
+        try {
+            if (is_object($this->callback)) {
+                $object = new \ReflectionObject($this->callback);
+                $function = $object->getMethod('__invoke');
+            } elseif (is_array($this->callback)) {
+                $object = new \ReflectionObject($this->callback[0]);
+                $function = $object->getMethod($this->callback[1]);
+            } elseif (is_string($this->callback)) {
+                $function = new \ReflectionFunction($this->callback);
+            } else {
+                throw new \UnexpectedValueException();
+            }
+        } catch (\ReflectionException $e) {
+            throw new \UnexpectedValueException();
+        }
+
+        /** @var \ReflectionFunctionAbstract $function */
+        $params = $function->getParameters();
+
+        $namedParams = new \ArrayObject;
+        foreach ($params as $param) {
+            if (isset($this->arguments[$param->getPosition()])) {
+                $namedParams[$param->getName()] = $this->arguments[$param->getPosition()];
+            }
+        }
+
+        return $namedParams;
     }
 
     /**

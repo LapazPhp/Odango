@@ -14,22 +14,26 @@ full featured AOP like a Google Guice or such as.
 ## Example
 
 ```php
-$withLoggedTransaction = AdviceComposite::of(function ($invocation) use ($logger) {
-    $logger->info('Starting transaction.');
-    $result = $invocation->proceed();
-    $logger->info('Transaction comitted.');
-    return $result;
-})->with(function ($invocation) use ($db) {
-    $db->beginTransaction();
-    try {
+$withLoggedTransaction = AdviceComposite::of(
+    function ($invocation) use ($logger) {
+        $logger->info('Starting transaction.');
         $result = $invocation->proceed();
-        $db->commit();
+        $logger->info('Transaction comitted.');
         return $result;
-    } catch (\Exception $ex) {
-        $dbh->rollBack();
-        throw $ex;
     }
-});
+)->with(
+    function ($invocation) use ($db) {
+        $db->beginTransaction();
+        try {
+            $result = $invocation->proceed();
+            $db->commit();
+            return $result;
+        } catch (\Exception $ex) {
+            $dbh->rollBack();
+            throw $ex;
+        }
+    }
+);
 
 $storeDataInvocation = [$this, 'storeData']; // Some callable
 $storeDataInvocation = $withLoggedTransaction->bind($storeDataInvocation);
@@ -45,5 +49,5 @@ references the creation context. Modification breaks it.
 
 ## Known issue
 
-`MethodInvocation::getThis()` and `Joinpoint::getThis()` are returns `null` because
-no object context there are.
+`Joinpoint::getThis()` and `Joinpoint::getMethod()` are throw a
+`BadMethodCallException` because no object context are bounded.

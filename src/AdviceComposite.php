@@ -2,7 +2,6 @@
 namespace Lapaz\Odango;
 
 use Ray\Aop\Advice;
-use Ray\Aop\Arguments;
 use Ray\Aop\MethodInterceptor;
 use Ray\Aop\MethodInvocation;
 
@@ -22,7 +21,7 @@ class AdviceComposite
      * @param Advice|callable $advice
      * @return static
      */
-    public static function of($advice)
+    public static function of($advice) : self
     {
         $compositor = new static();
         return $compositor->with($advice);
@@ -32,7 +31,7 @@ class AdviceComposite
      * @param Advice|callable $advice
      * @return static
      */
-    public function with($advice)
+    public function with($advice) : self
     {
         if ($advice instanceof Advice) {
             if ($advice instanceof MethodInterceptor || $advice instanceof CallbackInterceptor) {
@@ -55,7 +54,7 @@ class AdviceComposite
     /**
      * @return MethodInterceptor
      */
-    public function toAdvice()
+    public function toAdvice() : MethodInterceptor
     {
         return new CallbackInterceptor(function (MethodInvocation $invocation) {
             // before
@@ -82,7 +81,7 @@ class AdviceComposite
 
         $nextInvocation = new CallbackInvocation(function () use ($tailInterceptors, $invocation) {
             return $this->consumeInterceptors($tailInterceptors, $invocation);
-        }, new Arguments());
+        }, []);
 
         return $headInterceptor->invoke($nextInvocation);
     }
@@ -90,11 +89,10 @@ class AdviceComposite
     /**
      * @return callable
      */
-    public function toDecorator()
+    public function toDecorator() : callable
     {
         return function ($target) {
             return function (...$arguments) use ($target) {
-                $arguments = new Arguments($arguments);
                 $invocation = new CallbackInvocation($target, $arguments);
                 return $this->toAdvice()->invoke($invocation);
             };
@@ -105,7 +103,7 @@ class AdviceComposite
      * @param callable $target
      * @return callable
      */
-    public function bind(callable $target)
+    public function bind(callable $target) : callable
     {
         $decorator = $this->toDecorator();
         return $decorator($target);
